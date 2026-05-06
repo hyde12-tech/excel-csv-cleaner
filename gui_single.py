@@ -15,27 +15,30 @@ class SingleProcessFrame:
         # ファイル選択
         ctk.CTkLabel(self.parent, text='ファイル選択', anchor='w').pack(
             fill='x', padx=10, pady=(10, 0))
-        file_frame = ctk.CTkFrame(self.parent)
-        file_frame.pack(fill='x', padx=10, pady=(4, 8))
+        self.file_frame = ctk.CTkFrame(self.parent)
+        self.file_frame.pack(fill='x', padx=10, pady=(4, 8))
         self._file_entry = ctk.CTkEntry(
-            file_frame, textvariable=self.file_path, width=300, state='disabled')
+            self.file_frame, textvariable=self.file_path, width=300, state='disabled')
         self._file_entry.pack(side='left', padx=(10, 5), pady=8)
         ctk.CTkButton(
-            file_frame, text='ファイルを選択',
+            self.file_frame, text='ファイルを選択',
             command=self._select_file, width=120).pack(side='left', padx=5)
 
-        # 処理オプション
+        from tkinterdnd2 import DND_FILES
+        self.file_frame.drop_target_register(DND_FILES)
+        self.file_frame.dnd_bind('<<DragEnter>>', self._on_drag_enter)
+        self.file_frame.dnd_bind('<<DragLeave>>', self._on_drag_leave)
+        self.file_frame.dnd_bind('<<Drop>>', self._on_drop)
+
         ctk.CTkLabel(self.parent, text='処理を選択', anchor='w').pack(
             fill='x', padx=10, pady=(0, 0))
         opt = ctk.CTkFrame(self.parent)
         opt.pack(fill='x', padx=10, pady=(4, 8))
 
-        # 重複削除
         self.do_dedupe = tk.BooleanVar()
         ctk.CTkCheckBox(opt, text='重複データを削除', variable=self.do_dedupe).grid(
             row=0, column=0, sticky='w', padx=10, pady=8)
 
-        # 並び替え
         self.do_sort = tk.BooleanVar()
         ctk.CTkCheckBox(opt, text='並び替え', variable=self.do_sort).grid(
             row=1, column=0, sticky='w', padx=10, pady=4)
@@ -50,7 +53,6 @@ class SingleProcessFrame:
             opt, text='降順', variable=self.sort_order, value='降順').grid(
             row=1, column=4, padx=4)
 
-        # 集計
         self.do_agg = tk.BooleanVar()
         ctk.CTkCheckBox(opt, text='集計', variable=self.do_agg).grid(
             row=2, column=0, sticky='w', padx=10, pady=4)
@@ -67,7 +69,6 @@ class SingleProcessFrame:
         self.agg_method_cb.set('合計')
         self.agg_method_cb.grid(row=3, column=2, padx=4)
 
-        # 実行ボタン
         ctk.CTkButton(
             self.parent, text='実行する',
             command=self._run, width=200).pack(pady=12)
@@ -79,7 +80,9 @@ class SingleProcessFrame:
         )
         if not path:
             return
-        # disabled 状態では textvariable 経由で値を更新できないため一時的に normal にする
+        self._load_file(path)
+
+    def _load_file(self, path):
         self._file_entry.configure(state='normal')
         self.file_path.set(path)
         self._file_entry.configure(state='disabled')
@@ -95,6 +98,22 @@ class SingleProcessFrame:
                 self.agg_value_cb.set(cols[-1])
         except Exception as e:
             messagebox.showerror('エラー', f'ファイルを読み込めませんでした:\n{e}')
+
+    def _on_drag_enter(self, event):
+        self.file_frame.configure(border_width=2, border_color='#1f6feb')
+
+    def _on_drag_leave(self, event):
+        self.file_frame.configure(border_width=0)
+
+    def _on_drop(self, event):
+        self.file_frame.configure(border_width=0)
+        paths = self.file_frame.tk.splitlist(event.data)
+        if not paths:
+            return
+        path = paths[0]
+        if not path.lower().endswith(('.xlsx', '.csv')):
+            return
+        self._load_file(path)
 
     def _run(self):
         path = self.file_path.get()
