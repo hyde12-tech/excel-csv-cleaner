@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 import customtkinter as ctk
@@ -9,20 +10,23 @@ class SingleProcessFrame:
     def __init__(self, parent):
         self.parent = parent
         self.file_path = tk.StringVar()
+        self._display_path = tk.StringVar()
         self._build_ui()
 
     def _build_ui(self):
-        # ファイル選択
         ctk.CTkLabel(self.parent, text='ファイル選択', anchor='w').pack(
             fill='x', padx=10, pady=(10, 0))
         self.file_frame = ctk.CTkFrame(self.parent)
         self.file_frame.pack(fill='x', padx=10, pady=(4, 8))
         self._file_entry = ctk.CTkEntry(
-            self.file_frame, textvariable=self.file_path, width=300, state='disabled')
-        self._file_entry.pack(side='left', padx=(10, 5), pady=8)
+            self.file_frame, textvariable=self._display_path, width=260, state='disabled')
+        self._file_entry.pack(side='left', padx=(10, 4), pady=8)
         ctk.CTkButton(
             self.file_frame, text='ファイルを選択',
-            command=self._select_file, width=120).pack(side='left', padx=5)
+            command=self._select_file, width=120).pack(side='left', padx=(0, 4))
+        ctk.CTkButton(
+            self.file_frame, text='×', command=self._clear_file,
+            width=32, fg_color='gray40', hover_color='gray30').pack(side='left', padx=(0, 6))
 
         from tkinterdnd2 import DND_FILES
         self.file_frame.drop_target_register(DND_FILES)
@@ -85,6 +89,7 @@ class SingleProcessFrame:
     def _load_file(self, path):
         self._file_entry.configure(state='normal')
         self.file_path.set(path)
+        self._display_path.set(os.path.basename(path))
         self._file_entry.configure(state='disabled')
         try:
             df = read_table(path)
@@ -98,6 +103,18 @@ class SingleProcessFrame:
                 self.agg_value_cb.set(cols[-1])
         except Exception as e:
             messagebox.showerror('エラー', f'ファイルを読み込めませんでした:\n{e}')
+
+    def _clear_file(self):
+        self._file_entry.configure(state='normal')
+        self.file_path.set('')
+        self._display_path.set('')
+        self._file_entry.configure(state='disabled')
+        self.sort_col_cb.configure(values=[])
+        self.sort_col_cb.set('')
+        self.agg_group_cb.configure(values=[])
+        self.agg_group_cb.set('')
+        self.agg_value_cb.configure(values=[])
+        self.agg_value_cb.set('')
 
     def _on_drag_enter(self, event):
         self.file_frame.configure(border_width=2, border_color='#1f6feb')

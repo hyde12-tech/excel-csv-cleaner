@@ -9,7 +9,6 @@ class MergeFrame:
     def __init__(self, parent):
         self.parent = parent
         self.file_paths = []
-        self._selected_index = None
         self._build_ui()
 
     def _build_ui(self):
@@ -24,16 +23,16 @@ class MergeFrame:
         self.scroll_frame.dnd_bind('<<DragEnter>>', self._on_drag_enter)
         self.scroll_frame.dnd_bind('<<DragLeave>>', self._on_drag_leave)
         self.scroll_frame.dnd_bind('<<Drop>>', self._on_drop)
+        self.scroll_frame._canvas.drop_target_register(DND_FILES)
+        self.scroll_frame._canvas.dnd_bind('<<DragEnter>>', self._on_drag_enter)
+        self.scroll_frame._canvas.dnd_bind('<<DragLeave>>', self._on_drag_leave)
+        self.scroll_frame._canvas.dnd_bind('<<Drop>>', self._on_drop)
 
         btn_frame = ctk.CTkFrame(self.parent, fg_color='transparent')
         btn_frame.pack(fill='x', padx=10, pady=(0, 8))
         ctk.CTkButton(
             btn_frame, text='ファイルを追加',
-            command=self._add_files, width=130).pack(side='left', padx=(0, 8))
-        ctk.CTkButton(
-            btn_frame, text='選択を削除',
-            command=self._remove_selected, width=100,
-            fg_color='gray40', hover_color='gray30').pack(side='left')
+            command=self._add_files, width=130).pack(side='left')
 
         ctk.CTkButton(
             self.parent, text='統合する',
@@ -69,25 +68,19 @@ class MergeFrame:
     def _rebuild_list(self):
         for widget in self.scroll_frame.winfo_children():
             widget.destroy()
-        self._selected_index = None
         for i, path in enumerate(self.file_paths):
             name = path.replace('\\', '/').split('/')[-1]
-            label = ctk.CTkLabel(self.scroll_frame, text=name, anchor='w', cursor='hand2')
-            label.pack(fill='x', padx=4, pady=2)
-            label.bind('<Button-1>', lambda e, idx=i: self._select_item(idx))
+            row = ctk.CTkFrame(self.scroll_frame, fg_color='transparent')
+            row.pack(fill='x', padx=2, pady=1)
+            ctk.CTkLabel(row, text=name, anchor='w').pack(
+                side='left', fill='x', expand=True, padx=4)
+            ctk.CTkButton(
+                row, text='×', width=28,
+                fg_color='gray40', hover_color='gray30',
+                command=lambda idx=i: self._remove_at(idx)).pack(side='right', padx=2)
 
-    def _select_item(self, index):
-        self._selected_index = index
-        for i, widget in enumerate(self.scroll_frame.winfo_children()):
-            if i == index:
-                widget.configure(fg_color=('gray70', 'gray30'))
-            else:
-                widget.configure(fg_color='transparent')
-
-    def _remove_selected(self):
-        if self._selected_index is None:
-            return
-        self.file_paths.pop(self._selected_index)
+    def _remove_at(self, index):
+        self.file_paths.pop(index)
         self._rebuild_list()
 
     def _run(self):
