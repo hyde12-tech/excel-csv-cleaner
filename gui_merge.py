@@ -23,10 +23,13 @@ class MergeFrame:
         self.scroll_frame.dnd_bind('<<DragEnter>>', self._on_drag_enter)
         self.scroll_frame.dnd_bind('<<DragLeave>>', self._on_drag_leave)
         self.scroll_frame.dnd_bind('<<Drop>>', self._on_drop)
-        self.scroll_frame._canvas.drop_target_register(DND_FILES)
-        self.scroll_frame._canvas.dnd_bind('<<DragEnter>>', self._on_drag_enter)
-        self.scroll_frame._canvas.dnd_bind('<<DragLeave>>', self._on_drag_leave)
-        self.scroll_frame._canvas.dnd_bind('<<Drop>>', self._on_drop)
+        for child in self.scroll_frame.winfo_children():
+            if child.winfo_class() == 'Canvas':
+                child.drop_target_register(DND_FILES)
+                child.dnd_bind('<<DragEnter>>', self._on_drag_enter)
+                child.dnd_bind('<<DragLeave>>', self._on_drag_leave)
+                child.dnd_bind('<<Drop>>', self._on_drop)
+                break
 
         btn_frame = ctk.CTkFrame(self.parent, fg_color='transparent')
         btn_frame.pack(fill='x', padx=10, pady=(0, 8))
