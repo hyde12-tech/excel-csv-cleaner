@@ -1,0 +1,101 @@
+<h2>完成イメージはこんな感じです</h2>
+<p class="subtitle">CustomTkinter＋タブ統合のモックアップです。実際の操作感に近いイメージです。</p>
+
+<div class="mockup" style="max-width:520px;margin:0 auto;">
+  <div class="mockup-header">Excel/CSV データ整理ツール — プレビュー</div>
+  <div class="mockup-body" style="background:#1e1e2e;font-family:'Segoe UI',sans-serif;padding:0;border-radius:0 0 8px 8px;overflow:hidden;">
+
+    <!-- タイトル -->
+    <div style="padding:18px 20px 10px;text-align:center;">
+      <div style="color:#e0e0e0;font-size:16px;font-weight:bold;">📊 Excel/CSV データ整理ツール</div>
+    </div>
+
+    <!-- タブバー -->
+    <div style="display:flex;margin:0 20px 0;gap:4px;">
+      <div id="tab1" style="flex:1;background:#1f6feb;color:#fff;text-align:center;padding:8px 0;border-radius:8px 8px 0 0;font-size:12px;font-weight:bold;cursor:pointer;" onclick="switchTab('single')">
+        📄 単体ファイル処理
+      </div>
+      <div id="tab2" style="flex:1;background:#2a2a3e;color:#aaa;text-align:center;padding:8px 0;border-radius:8px 8px 0 0;font-size:12px;cursor:pointer;" onclick="switchTab('merge')">
+        📑 複数ファイル統合
+      </div>
+    </div>
+
+    <!-- 単体ファイルパネル -->
+    <div id="panel-single" style="background:#2a2a3e;margin:0 20px;padding:16px;border-radius:0 0 8px 8px;">
+      <!-- ファイル選択 -->
+      <div style="background:#1e1e2e;border-radius:8px;padding:12px;margin-bottom:12px;">
+        <div style="color:#aaa;font-size:10px;margin-bottom:8px;letter-spacing:1px;">ファイル選択</div>
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;background:#111;border:1px solid #444;border-radius:6px;padding:7px 10px;color:#888;font-size:11px;">sample_data.xlsx</div>
+          <div style="background:#1f6feb;color:#fff;border-radius:6px;padding:7px 14px;font-size:11px;cursor:pointer;">選択</div>
+        </div>
+      </div>
+
+      <!-- 処理選択 -->
+      <div style="background:#1e1e2e;border-radius:8px;padding:12px;margin-bottom:12px;">
+        <div style="color:#aaa;font-size:10px;margin-bottom:8px;letter-spacing:1px;">処理を選択</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:16px;height:16px;border-radius:4px;background:#1f6feb;"></div>
+            <span style="color:#ddd;font-size:12px;">重複データを削除</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:16px;height:16px;border-radius:4px;border:1px solid #555;"></div>
+            <span style="color:#888;font-size:12px;">並び替え</span>
+            <div style="background:#111;border:1px solid #444;border-radius:4px;padding:3px 8px;color:#777;font-size:10px;margin-left:8px;">列を選択 ▾</div>
+            <div style="color:#777;font-size:10px;">昇順 ● 降順 ○</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:16px;height:16px;border-radius:4px;border:1px solid #555;"></div>
+            <span style="color:#888;font-size:12px;">集計</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 実行ボタン -->
+      <div style="text-align:center;">
+        <div style="background:#1f6feb;color:#fff;border-radius:8px;padding:10px 48px;font-size:13px;font-weight:bold;display:inline-block;cursor:pointer;">実行する</div>
+      </div>
+    </div>
+
+    <!-- 複数ファイルパネル（非表示） -->
+    <div id="panel-merge" style="background:#2a2a3e;margin:0 20px;padding:16px;border-radius:0 0 8px 8px;display:none;">
+      <div style="background:#1e1e2e;border-radius:8px;padding:12px;margin-bottom:12px;">
+        <div style="color:#aaa;font-size:10px;margin-bottom:8px;letter-spacing:1px;">統合するファイル（2つ以上）</div>
+        <div style="background:#111;border:1px solid #333;border-radius:6px;padding:8px;min-height:80px;">
+          <div style="color:#555;font-size:11px;padding:4px;">4月売上.xlsx</div>
+          <div style="color:#555;font-size:11px;padding:4px;">5月売上.xlsx</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <div style="background:#1f6feb;color:#fff;border-radius:6px;padding:6px 14px;font-size:11px;cursor:pointer;">ファイルを追加</div>
+          <div style="background:#333;color:#aaa;border-radius:6px;padding:6px 14px;font-size:11px;cursor:pointer;">選択を削除</div>
+        </div>
+      </div>
+      <div style="text-align:center;">
+        <div style="background:#1f6feb;color:#fff;border-radius:8px;padding:10px 48px;font-size:13px;font-weight:bold;display:inline-block;cursor:pointer;">統合する</div>
+      </div>
+    </div>
+
+    <div style="height:16px;"></div>
+  </div>
+</div>
+
+<p style="text-align:center;color:#888;font-size:12px;margin-top:12px;">※ タブをクリックすると切り替わります（プレビュー動作）</p>
+
+<script>
+function switchTab(tab) {
+  const t1 = document.getElementById('tab1');
+  const t2 = document.getElementById('tab2');
+  const p1 = document.getElementById('panel-single');
+  const p2 = document.getElementById('panel-merge');
+  if (tab === 'single') {
+    t1.style.background='#1f6feb'; t1.style.color='#fff'; t1.style.fontWeight='bold';
+    t2.style.background='#2a2a3e'; t2.style.color='#aaa'; t2.style.fontWeight='normal';
+    p1.style.display='block'; p2.style.display='none';
+  } else {
+    t2.style.background='#1f6feb'; t2.style.color='#fff'; t2.style.fontWeight='bold';
+    t1.style.background='#2a2a3e'; t1.style.color='#aaa'; t1.style.fontWeight='normal';
+    p2.style.display='block'; p1.style.display='none';
+  }
+}
+</script>
