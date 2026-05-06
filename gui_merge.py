@@ -19,6 +19,12 @@ class MergeFrame:
         self.scroll_frame = ctk.CTkScrollableFrame(self.parent, height=150)
         self.scroll_frame.pack(fill='x', padx=10, pady=(4, 8))
 
+        from tkinterdnd2 import DND_FILES
+        self.scroll_frame.drop_target_register(DND_FILES)
+        self.scroll_frame.dnd_bind('<<DragEnter>>', self._on_drag_enter)
+        self.scroll_frame.dnd_bind('<<DragLeave>>', self._on_drag_leave)
+        self.scroll_frame.dnd_bind('<<Drop>>', self._on_drop)
+
         btn_frame = ctk.CTkFrame(self.parent, fg_color='transparent')
         btn_frame.pack(fill='x', padx=10, pady=(0, 8))
         ctk.CTkButton(
@@ -42,6 +48,23 @@ class MergeFrame:
             if path not in self.file_paths:
                 self.file_paths.append(path)
         self._rebuild_list()
+
+    def _on_drag_enter(self, event):
+        self.scroll_frame.configure(border_width=2, border_color='#1f6feb')
+
+    def _on_drag_leave(self, event):
+        self.scroll_frame.configure(border_width=0)
+
+    def _on_drop(self, event):
+        self.scroll_frame.configure(border_width=0)
+        paths = self.scroll_frame.tk.splitlist(event.data)
+        added = False
+        for path in paths:
+            if path.lower().endswith(('.xlsx', '.csv')) and path not in self.file_paths:
+                self.file_paths.append(path)
+                added = True
+        if added:
+            self._rebuild_list()
 
     def _rebuild_list(self):
         for widget in self.scroll_frame.winfo_children():
