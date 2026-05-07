@@ -23,13 +23,25 @@ class MergeFrame:
         self.scroll_frame.dnd_bind('<<DragEnter>>', self._on_drag_enter)
         self.scroll_frame.dnd_bind('<<DragLeave>>', self._on_drag_leave)
         self.scroll_frame.dnd_bind('<<Drop>>', self._on_drop)
-        for child in self.scroll_frame.winfo_children():
-            if child.winfo_class() == 'Canvas':
-                child.drop_target_register(DND_FILES)
-                child.dnd_bind('<<DragEnter>>', self._on_drag_enter)
-                child.dnd_bind('<<DragLeave>>', self._on_drag_leave)
-                child.dnd_bind('<<Drop>>', self._on_drop)
-                break
+
+        # CTkScrollableFrame.winfo_children() は内側コンテンツの子を返すよう上書きされているため
+        # Canvas を見つけるには _canvas 属性か tk レベルの winfo children を使う
+        canvas = getattr(self.scroll_frame, '_canvas', None)
+        if canvas is None:
+            try:
+                for name in self.scroll_frame.tk.splitlist(
+                        self.scroll_frame.tk.call('winfo', 'children', self.scroll_frame._w)):
+                    widget = self.scroll_frame.nametowidget(name)
+                    if widget.winfo_class() == 'Canvas':
+                        canvas = widget
+                        break
+            except Exception:
+                pass
+        if canvas is not None:
+            canvas.drop_target_register(DND_FILES)
+            canvas.dnd_bind('<<DragEnter>>', self._on_drag_enter)
+            canvas.dnd_bind('<<DragLeave>>', self._on_drag_leave)
+            canvas.dnd_bind('<<Drop>>', self._on_drop)
 
         btn_frame = ctk.CTkFrame(self.parent, fg_color='transparent')
         btn_frame.pack(fill='x', padx=10, pady=(0, 8))
