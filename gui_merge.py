@@ -19,29 +19,21 @@ class MergeFrame:
         self.scroll_frame.pack(fill='x', padx=10, pady=(4, 8))
 
         from tkinterdnd2 import DND_FILES
-        self.scroll_frame.drop_target_register(DND_FILES)
-        self.scroll_frame.dnd_bind('<<DragEnter>>', self._on_drag_enter)
-        self.scroll_frame.dnd_bind('<<DragLeave>>', self._on_drag_leave)
-        self.scroll_frame.dnd_bind('<<Drop>>', self._on_drop)
 
-        # CTkScrollableFrame.winfo_children() は内側コンテンツの子を返すよう上書きされているため
-        # Canvas を見つけるには _canvas 属性か tk レベルの winfo children を使う
-        canvas = getattr(self.scroll_frame, '_canvas', None)
-        if canvas is None:
-            try:
-                for name in self.scroll_frame.tk.splitlist(
-                        self.scroll_frame.tk.call('winfo', 'children', self.scroll_frame._w)):
-                    widget = self.scroll_frame.nametowidget(name)
-                    if widget.winfo_class() == 'Canvas':
-                        canvas = widget
-                        break
-            except Exception:
-                pass
-        if canvas is not None:
-            canvas.drop_target_register(DND_FILES)
-            canvas.dnd_bind('<<DragEnter>>', self._on_drag_enter)
-            canvas.dnd_bind('<<DragLeave>>', self._on_drag_leave)
-            canvas.dnd_bind('<<Drop>>', self._on_drop)
+        def _reg(widget):
+            widget.drop_target_register(DND_FILES)
+            widget.dnd_bind('<<DragEnter>>', self._on_drag_enter)
+            widget.dnd_bind('<<DragLeave>>', self._on_drag_leave)
+            widget.dnd_bind('<<Drop>>', self._on_drop)
+
+        # CTkScrollableFrame は sf 自体がスクロール内コンテンツで、
+        # その外側に _parent_canvas（Canvasビューポート）と
+        # _parent_frame（スクロールバー付き外枠）がある。
+        # 空エリアへのドロップは _parent_canvas が受け取るため、
+        # 3階層すべてに D&D を登録する必要がある。
+        _reg(self.scroll_frame)
+        _reg(self.scroll_frame._parent_canvas)
+        _reg(self.scroll_frame._parent_frame)
 
         btn_frame = ctk.CTkFrame(self.parent, fg_color='transparent')
         btn_frame.pack(fill='x', padx=10, pady=(0, 8))
@@ -64,13 +56,13 @@ class MergeFrame:
         self._rebuild_list()
 
     def _on_drag_enter(self, event):
-        self.scroll_frame.configure(border_width=2, border_color='#1f6feb')
+        self.scroll_frame._parent_frame.configure(border_width=2, border_color='#1f6feb')
 
     def _on_drag_leave(self, event):
-        self.scroll_frame.configure(border_width=0)
+        self.scroll_frame._parent_frame.configure(border_width=0)
 
     def _on_drop(self, event):
-        self.scroll_frame.configure(border_width=0)
+        self.scroll_frame._parent_frame.configure(border_width=0)
         paths = self.scroll_frame.tk.splitlist(event.data)
         added = False
         for path in paths:
